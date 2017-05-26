@@ -187,15 +187,17 @@ class CrudComponentTest extends TestCase
 
         $this->model = TableRegistry::get('CrudExamples');
 
-        $this->request = $this->getMock('Cake\Network\Request', ['is', 'method']);
+        $this->request = $this->getMockBuilder('Cake\Network\Request')
+            ->setMethods(['is', 'method'])
+            ->getMock();
+
         $this->request->expects($this->any())->method('is')->will($this->returnValue(true));
 
         $response = new Response();
-        $this->controller = $this->getMock(
-            'Crud\TestCase\Controller\Crud\CrudExamplesController',
-            ['header', 'redirect', 'render', '_stop'],
-            [$this->request, $response, 'CrudExamples', EventManager::instance()]
-        );
+        $this->controller = $this->getMockBuilder('Crud\TestCase\Controller\Crud\CrudExamplesController')
+            ->setMethods(['header', 'redirect', 'render', '_stop'])
+            ->setConstructorArgs([$this->request, $response, 'CrudExamples', EventManager::instance()])
+            ->getMock();
         $this->controller->methods = [];
 
         $this->Registry = $this->controller->components();
@@ -248,11 +250,10 @@ class CrudComponentTest extends TestCase
                 'Crud.Related'
             ]
         ];
-        $Crud = $this->getMock(
-            'Crud\Controller\Component\CrudComponent',
-            ['_loadListeners', 'trigger'],
-            [$this->Registry, $config]
-        );
+        $Crud = $this->getMockBuilder('Crud\Controller\Component\CrudComponent')
+            ->setMethods(['_loadListeners', 'trigger'])
+            ->setConstructorArgs([$this->Registry, $config])
+            ->getMock();
         $Crud
             ->expects($this->once())
             ->method('_loadListeners');
@@ -282,11 +283,10 @@ class CrudComponentTest extends TestCase
     {
         $config = ['actions' => ['Crud.Index']];
 
-        $Crud = $this->getMock(
-            'Crud\Controller\Component\CrudComponent',
-            ['execute'],
-            [$this->Registry, $config]
-        );
+        $Crud = $this->getMockBuilder('Crud\Controller\Component\CrudComponent')
+            ->setMethods(['execute'])
+            ->setConstructorArgs([$this->Registry, $config])
+            ->getMock();
         $Crud
             ->expects($this->once())
             ->method('execute')
@@ -375,7 +375,7 @@ class CrudComponentTest extends TestCase
         $this->assertTrue($result);
 
         $this->controller->request->action = 'edit';
-        $this->Crud->beforeFilter(new Event('Controller.beforeFilter'));
+        $this->Crud->initialize([]]);
         $result = $this->Crud->isActionMapped();
         $this->assertTrue($result);
     }
@@ -924,7 +924,6 @@ class CrudComponentTest extends TestCase
      */
     public function testControllerWithEmptyUses()
     {
-        $controller = new Controller(new Request());
         $this->Crud = new CrudComponent($this->Registry, ['actions' => ['index']]);
         $this->Crud->beforeFilter(new Event('Controller.beforeFilter'));
         $this->controller->Crud = $this->Crud;
@@ -992,21 +991,13 @@ class CrudComponentTest extends TestCase
      */
     public function testUseModel()
     {
-        $this->markTestSkipped(
-            'Tests still not updated.'
-        );
-
-        $controller = new Controller(new Request());
-        $this->Crud = new CrudComponent($this->Registry, ['actions' => ['index']]);
+        $this->Crud = new CrudComponent($this->Registry, ['actions' => ['Crud.Index']]);
         $this->Crud->beforeFilter(new Event('Controller.beforeFilter'));
         $this->controller->Crud = $this->Crud;
         $class = $this->getMockClass('Model');
         $this->Crud->useModel($class);
-        $this->Crud->action('index');
-        $subject = $this->Crud->trigger('sample');
 
-        $this->assertInstanceOf($class, $subject->model);
-        $this->assertEquals($class, $subject->modelClass);
+        $this->assertEquals($class, $this->Crud->table()->alias());
     }
 
     /**

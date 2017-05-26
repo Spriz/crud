@@ -173,10 +173,9 @@ class CrudComponent extends Component
     /**
      * Add self to list of components capable of dispatching an action.
      *
-     * @param \Cake\Event\Event $event Event instance
-     * @return void
+     * @param array $config
      */
-    public function beforeFilter(Event $event)
+    public function initialize(array $config)
     {
         $this->_action = $this->_controller->request->action;
         $this->_request = $this->_controller->request;
@@ -186,7 +185,16 @@ class CrudComponent extends Component
         }
 
         $this->_controller->dispatchComponents['Crud'] = true;
+    }
 
+    /**
+     * Loads listeners
+     *
+     * @param \Cake\Event\Event $event Event instance
+     * @return void
+     */
+    public function beforeFilter(Event $event)
+    {
         $this->_loadListeners();
         $this->trigger('beforeFilter');
     }
@@ -249,7 +257,7 @@ class CrudComponent extends Component
     /**
      * Get a CrudAction object by action name.
      *
-     * @param string $name The controller action name.
+     * @param string|null $name The controller action name.
      * @return \Crud\Action\BaseAction
      */
     public function action($name = null)
@@ -259,6 +267,7 @@ class CrudComponent extends Component
         }
 
         $name = Inflector::variable($name);
+
         return $this->_loadAction($name);
     }
 
@@ -294,7 +303,7 @@ class CrudComponent extends Component
      * To map multiple action views in one go pass an array as first argument and no second argument.
      *
      * @param string|array $action Action or array of actions
-     * @param string $view View name
+     * @param string|null $view View name
      * @return void
      */
     public function view($action, $view = null)
@@ -316,7 +325,7 @@ class CrudComponent extends Component
      * To map multiple action viewVars in one go pass an array as first argument and no second argument.
      *
      * @param string|array $action Action or array of actions.
-     * @param string $viewVar View var name.
+     * @param string|null $viewVar View var name.
      * @return void
      */
     public function viewVar($action, $viewVar = null)
@@ -338,7 +347,7 @@ class CrudComponent extends Component
      * To map multiple findMethods in one go pass an array as first argument and no second argument.
      *
      * @param string|array $action Action or array of actions.
-     * @param string $method Find method name
+     * @param string|null $method Find method name
      * @return void
      */
     public function findMethod($action, $method = null)
@@ -378,7 +387,7 @@ class CrudComponent extends Component
     /**
      * Check if a CRUD action has been mapped (whether it will be handled by CRUD component)
      *
-     * @param string $action If null, use the current action.
+     * @param string|null $action If null, use the current action.
      * @return bool
      */
     public function isActionMapped($action = null)
@@ -486,7 +495,7 @@ class CrudComponent extends Component
      * object.
      *
      * @param string $eventName Event name
-     * @param \Crud\Event\Subject $data Event data
+     * @param \Crud\Event\Subject|null $data Event data
      * @throws Exception if any event listener return a CakeResponse object.
      * @return \Cake\Event\Event
      */
@@ -546,7 +555,7 @@ class CrudComponent extends Component
                 $this->config(sprintf('%s.%s', $type, $realName), $config);
             }
 
-            return;
+            return null;
         }
 
         return $this->config(sprintf('%s.%s', $type, $name));
@@ -571,7 +580,7 @@ class CrudComponent extends Component
     public function useModel($modelName)
     {
         $this->_controller->loadModel($modelName);
-        $this->_modelName = $this->_model->name;
+        list(, $this->_modelName) = pluginSplit($modelName);
     }
 
     /**
